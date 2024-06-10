@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.tealibrary.shop.dao.MemberMapper">
+    <select id="selectcustno" resultType="int">
+    select IFNULL(max(cust_no)+1, 100001) AS cust_no
+    from member_tbl
+    </select>
+
+    <insert id="memberjoin" parameterType="MemberDto">
+        insert into member_tbl (cust_name, phone, cust_email, grade)
+        values (#{cust_name}, #{phone}, #{cust_email}, #{grade})
+    </insert>
+
+    <select id="memberList" resultType="MemberDto">
+        select cust_no,
+               cust_name,
+               phone,
+               join_date,
+               cust_email,
+               CASE
+                   WHEN (grade = 'P') THEN 'Platinum'
+                   WHEN (grade = 'G') THEN 'Gold'
+                   ELSE 'Silver'
+                   END AS grade
+        from member_tbl
+        order by cust_no asc
+    </select>
+
+    <select id="memberInfo" resultType="MemberDto" parameterType="int">
+        select cust_no,
+               cust_name,
+               phone,
+               join_date,
+               cust_email,
+               grade
+        from member_tbl where cust_no = #{cust_no}
+    </select>
+
+    <update id="modify" parameterType="MemberDto">
+        update member_tbl
+        set cust_name = #{cust_name}, phone = #{phone}, cust_email = #{cust_email}, grade = #{grade}
+        where cust_no = #{cust_no}
+    </update>
+
+    <select id="rentList" resultType="MemberRentDto">
+        SELECT cust_no, rent_no, book_code, rent_price, rent_date
+        FROM rent_tbl
+    </select>
+
+    <select id="rentMoney" resultType="MemberDto">
+        SELECT member_tbl.cust_no,member_tbl.cust_name, member_tbl.grade, IFNULL(SUM(rent_tbl.rent_price), 0) as rentMony
+        FROM member_tbl LEFT JOIN rent_tbl ON member_tbl.cust_no = rent_tbl.cust_no GROUP BY member_tbl.cust_no
+        ORDER BY rentMony DESC
+    </select>
+</mapper>
